@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 200px;
+            overflow-y: scroll;
+        }
+
+        input[type="text"] {
+            width: 70%;
+        }
+
+        button {
+            width: 25%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Teste WebSocket</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Digite sua mensagem...">
+    <button id="sendButton">Enviar</button>
+    <button id="pingButton">Ping</button>
+
+    <script>
+        const ws = new WebSocket('wscat -c wss://s9zyt6n8we.execute-api.sa-east-1.amazonaws.com/dev/');
+
+        ws.onopen = () => {
+            console.log('Conectado ao WebSocket');
+            appendMessage('Conectado ao WebSocket');
+        };
+
+        ws.onmessage = (event) => {
+            console.log('Mensagem recebida:', event.data);
+            appendMessage('Recebido: ' + event.data);
+        };
+
+        ws.onerror = (error) => {
+            console.error('Erro no WebSocket:', error);
+            appendMessage('Erro: ' + error.message);
+        };
+
+        ws.onclose = () => {
+            console.log('Conexão WebSocket fechada');
+            appendMessage('Conexão fechada');
+        };
+
+        document.getElementById('sendButton').onclick = () => {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value;
+            if (message) {
+                const jsonMessage = JSON.stringify({action: 'sendMessage', data: message});
+                ws.send(jsonMessage);
+                messageInput.value = ''; // Limpar o campo de entrada
+            }
+        };
+
+        document.getElementById('pingButton').onclick = () => {
+            const jsonMessage = JSON.stringify({action: 'ping'});
+            ws.send(jsonMessage);
+        };
+
+        function appendMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += message + '<br>';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rolagem automática
+        }
+    </script>
+</body>
+
+</html>
